@@ -9,6 +9,7 @@ export default function Sidebar() {
         <Link to="/profile" className="hover:bg-gray-700 p-2 rounded">Profile</Link>
         <Link to="/notifications" className="hover:bg-gray-700 p-2 rounded">Notifications</Link>
         <Link to="/add-job" className="hover:bg-gray-700 p-2 rounded">Add Job</Link> 
+        <Link to="/apply-jobs" className="hover:bg-gray-700 p-2 rounded">Apply for Jobs</Link>
       </nav>
     </aside>
   );
