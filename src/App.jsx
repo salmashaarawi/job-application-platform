@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/SideBar';
 import Dashboard from './pages/Dashboard';
-import JobListing from './pages/JobListing';
+import JobListing from './pages/RecruiterJobPosting';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import AddJob from './pages/AddJob'; // Import the AddJob component
