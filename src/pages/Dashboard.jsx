@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 
 export default function Dashboard() {
-  // Sample data for metrics and recent activities (mocked for now)
+
   const [metrics] = useState({
     totalJobsPosted: 8,
     totalApplications: 23,
