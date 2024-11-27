@@ -1,137 +1,160 @@
-import { useState } from "react";
+import  { useEffect, useState } from 'react';
+import axios from 'axios';
 
 export default function Profile() {
-  // Mock profile data (could be fetched from a database in a real app)
-  const [profile, setProfile] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    location: "New York",
-    profilePicture: null,
-  });
+  const [profile, setProfile] = useState(null);
+  const [editMode, setEditMode] = useState(false); // Toggle between view and edit modes
+  const [error, setError] = useState('');
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedProfile, setEditedProfile] = useState(profile);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [userType, setUserType] = useState('');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+
+        // Check if token exists
+        if (!token) {
+          setError('User is not authenticated.');
+          return;
+        }
+
+        // Fetch user profile from the API
+        const response = await axios.get(`/api/users/${token}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setProfile(response.data);
+        // Set form values with fetched profile data
+        setFirstName(response.data.firstName);
+        setLastName(response.data.lastName);
+        setEmail(response.data.email);
+        setUserType(response.data.userType);
+
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+        setError('Failed to load profile information.');
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleEditToggle = () => {
-    setIsEditing(!isEditing);
-    setEditedProfile(profile);
-    setSuccessMessage("");
+    setEditMode(!editMode);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditedProfile({ ...editedProfile, [name]: value });
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const updatedProfile = {
+        firstName,
+        lastName,
+        email,
+        userType,
+      };
+
+      // Update the profile using the API
+      await axios.put(`/api/users/${token}`, updatedProfile, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Update the local profile data and exit edit mode
+      setProfile(updatedProfile);
+      setEditMode(false);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      setError('Failed to update profile information.');
+    }
   };
 
-  const handleProfilePictureChange = (e) => {
-    setEditedProfile({ ...editedProfile, profilePicture: e.target.files[0] });
-  };
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
 
-  const handleSave = () => {
-    setProfile(editedProfile);
-    setIsEditing(false);
-    setSuccessMessage("Profile updated successfully!");
-  };
+  if (!profile) {
+    return <p>Loading profile...</p>;
+  }
 
   return (
-    <div className="max-w-2xl mx-auto bg-gray-800 p-8 rounded-lg shadow-md mt-10">
-      <h2 className="text-3xl font-bold mb-6 text-center">Profile</h2>
-      {successMessage && <p className="text-green-500 mb-4 text-center">{successMessage}</p>}
+    <div className="max-w-md mx-auto mt-10 p-8 bg-gray-800 text-white rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Profile</h2>
 
-      <div className="flex justify-center mb-6">
-        <img
-          src={profile.profilePicture ? URL.createObjectURL(profile.profilePicture) : "https://via.placeholder.com/150"}
-          alt="Profile"
-          className="w-32 h-32 rounded-full border-4 border-gray-600"
-        />
-      </div>
-
-      <div className="space-y-4">
+      {editMode ? (
         <div>
-          <label className="block text-sm font-medium text-gray-300">Name</label>
-          {isEditing ? (
+          <div>
+            <label>First Name</label>
             <input
               type="text"
-              name="name"
-              value={editedProfile.name}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
             />
-          ) : (
-            <p className="text-lg text-white">{profile.name}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-300">Email</label>
-          {isEditing ? (
+          </div>
+          <div>
+            <label>Last Name</label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
+            />
+          </div>
+          <div>
+            <label>Email</label>
             <input
               type="email"
-              name="email"
-              value={editedProfile.email}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
             />
-          ) : (
-            <p className="text-lg text-white">{profile.email}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-300">Location</label>
-          {isEditing ? (
-            <input
-              type="text"
-              name="location"
-              value={editedProfile.location}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-            />
-          ) : (
-            <p className="text-lg text-white">{profile.location}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-300">Profile Picture</label>
-          {isEditing ? (
-            <input
-              type="file"
-              onChange={handleProfilePictureChange}
-              className="mt-1 block w-full text-white"
-            />
-          ) : (
-            <p className="text-lg text-white">Uploaded Picture</p>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-6 flex justify-center space-x-4">
-        {isEditing ? (
-          <>
-            <button
-              onClick={handleSave}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+          </div>
+          <div>
+            <label>User Type</label>
+            <select
+              value={userType}
+              onChange={(e) => setUserType(e.target.value)}
+              className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
             >
-              Save
-            </button>
-            <button
-              onClick={handleEditToggle}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200"
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
+              <option value="applicant">Applicant</option>
+              <option value="recruiter">Recruiter</option>
+            </select>
+          </div>
+          <button
+            onClick={handleSave}
+            className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+          >
+            Save
+          </button>
           <button
             onClick={handleEditToggle}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+            className="mt-2 w-full bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div>
+          <p><strong>First Name:</strong> {profile.firstName}</p>
+          <p><strong>Last Name:</strong> {profile.lastName}</p>
+          <p><strong>Email:</strong> {profile.email}</p>
+          <p><strong>User Type:</strong> {profile.userType}</p>
+          <button
+            onClick={handleEditToggle}
+            className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
           >
             Edit Profile
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
