@@ -40,9 +40,18 @@ export default function Sidebar() {
 
         {/* Links for Candidates */}
         {userType === "Candidate" && (
-          <Link to="/apply-jobs" className="hover:bg-gray-700 p-2 rounded">
-            Apply for Jobs
-          </Link>
+          <>
+            <Link to="/apply-jobs" className="hover:bg-gray-700 p-2 rounded">
+              Apply for Jobs
+            </Link>
+
+            <Link
+              to="/applied-jobs"
+              className="hover:bg-gray-700 p-2 rounded"
+            >
+              Jobs Applications
+            </Link>
+          </>
         )}
 
         {/* Logout button */}
