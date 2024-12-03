@@ -10,19 +10,21 @@ export default function JobListing() {
     const fetchJobs = async () => {
       try {
         const token = localStorage.getItem("token");
-        const userId = localStorage.getItem("userId"); 
+        const userId = localStorage.getItem("userId"); // Use userId as recID
         if (!token || !userId) {
           setError("Unauthorized. Please log in.");
           return;
         }
 
+        // Fetch jobs posted by the recruiter (current user)
         const response = await axios.get(`/jobs/jobs?recID=${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setJobs(response.data);
+        setJobs(response.data); // Update state with fetched jobs
+        setError("");
       } catch (err) {
         console.error("Error fetching jobs:", err);
         setError("Failed to load job postings.");
@@ -33,26 +35,28 @@ export default function JobListing() {
   }, []);
 
   const handleEdit = (id) => {
-    // Navigate to the edit job page or show an edit form
     console.log(`Editing job with id: ${id}`);
+    // Navigate to edit page or show an edit form
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this job posting?")) {
       try {
         const token = localStorage.getItem("token");
-        await axios.delete(`/api/jobs/${id}`, {
+        
+        // Make DELETE request to remove job
+        await axios.delete(`/jobs/jobs/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        // Remove job from local state
+        // Update state to remove deleted job
         setJobs(jobs.filter((job) => job.jID !== id));
         alert("Job deleted successfully.");
       } catch (err) {
         console.error("Error deleting job:", err);
-        alert("Failed to delete the job.");
+        alert("Failed to delete the job. Please try again.");
       }
     }
   };
@@ -91,7 +95,7 @@ export default function JobListing() {
             No job postings available.{" "}
             <Link to="/add-job" className="text-blue-500 underline">
               Add a new job
-            </Link>.
+            </Link>
           </p>
         )}
       </div>
