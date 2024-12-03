@@ -1,24 +1,32 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
 import  { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [editMode, setEditMode] = useState(false); // Toggle between view and edit modes
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [userType, setUserType] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+
+  // Password fields
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
 
-        // Check if token exists
         if (!token) {
-          setError('User is not authenticated.');
+          setError("User is not authenticated.");
+
           return;
         }
 
@@ -34,11 +42,10 @@ export default function Profile() {
         setFirstName(response.data.firstName);
         setLastName(response.data.lastName);
         setEmail(response.data.email);
-        setUserType(response.data.userType);
-
       } catch (err) {
         console.error("Error fetching profile:", err);
-        setError('Failed to load profile information.');
+        setError("Failed to load profile information.");
+
       }
     };
 
@@ -47,18 +54,21 @@ export default function Profile() {
 
   const handleEditToggle = () => {
     setEditMode(!editMode);
+    setError("");
+    setSuccess("");
+
   };
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
 
       const updatedProfile = {
         firstName,
         lastName,
         email,
-        userType,
       };
+
 
       // Update the profile using the API
       await axios.put(`/api/users/${token}`, updatedProfile, {
@@ -70,9 +80,58 @@ export default function Profile() {
       // Update the local profile data and exit edit mode
       setProfile(updatedProfile);
       setEditMode(false);
+      setSuccess("Profile updated successfully.");
     } catch (err) {
       console.error("Error updating profile:", err);
-      setError('Failed to update profile information.');
+      setError("Failed to update profile information.");
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!currentPassword && !newPassword && !confirmPassword) {
+      // No password change requested
+      setSuccess("Profile updated successfully without changing password.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("New passwords do not match.");
+      return;
+    }
+
+    if (!currentPassword) {
+      setError("Current password is required to change your password.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // Update the password using the API
+      await axios.post(
+        `/api/users/${token}/update-password`,
+        {
+          currentPassword,
+          newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setSuccess("Password updated successfully.");
+      setError("");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      console.error("Error updating password:", err);
+      setError(
+        "Failed to update password. Please check your current password."
+      );
+
     }
   };
 
@@ -87,6 +146,9 @@ export default function Profile() {
   return (
     <div className="max-w-md mx-auto mt-10 p-8 bg-gray-800 text-white rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Profile</h2>
+      {success && <p className="text-green-500 mb-4">{success}</p>}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
 
       {editMode ? (
         <div>
@@ -117,22 +179,50 @@ export default function Profile() {
               className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
             />
           </div>
-          <div>
-            <label>User Type</label>
-            <select
-              value={userType}
-              onChange={(e) => setUserType(e.target.value)}
-              className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
+
+          <div className="mt-8">
+            <h3 className="text-xl font-bold mb-4">Update Password</h3>
+            <div>
+              <label>Current Password</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
+              />
+            </div>
+            <div>
+              <label>New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
+              />
+            </div>
+            <div>
+              <label>Confirm New Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600"
+              />
+            </div>
+            <button
+              onClick={handlePasswordUpdate}
+              className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
             >
-              <option value="applicant">Applicant</option>
-              <option value="recruiter">Recruiter</option>
-            </select>
+              Update Password
+            </button>
+
           </div>
           <button
             onClick={handleSave}
             className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
           >
-            Save
+            Save Profile
+
           </button>
           <button
             onClick={handleEditToggle}
@@ -143,10 +233,16 @@ export default function Profile() {
         </div>
       ) : (
         <div>
-          <p><strong>First Name:</strong> {profile.firstName}</p>
-          <p><strong>Last Name:</strong> {profile.lastName}</p>
-          <p><strong>Email:</strong> {profile.email}</p>
-          <p><strong>User Type:</strong> {profile.userType}</p>
+          <p>
+            <strong>First Name:</strong> {profile.firstName}
+          </p>
+          <p>
+            <strong>Last Name:</strong> {profile.lastName}
+          </p>
+          <p>
+            <strong>Email:</strong> {profile.email}
+          </p>
+
           <button
             onClick={handleEditToggle}
             className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"

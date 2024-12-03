@@ -1,198 +1,144 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function AddJob() {
-  const [title, setTitle] = useState("");
-  const [company, setCompany] = useState("");
-  const [location, setLocation] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [salary, setSalary] = useState("");
-  const [requirements, setRequirements] = useState("");
-  const [responsibilities, setResponsibilities] = useState("");
-  const [benefits, setBenefits] = useState("");
-  const [logo, setLogo] = useState(null);
+  const [recID, setRecID] = useState("");
+  const [jname, setJname] = useState("");
+  const [desc, setDesc] = useState("");
+  const [pdate, setPdate] = useState("");
+  const [questions, setQuestions] = useState([""]);
   const [successMessage, setSuccessMessage] = useState("");
-  const [errors, setErrors] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!title) newErrors.title = "Job title is required.";
-    if (!company) newErrors.company = "Company name is required.";
-    if (!location) newErrors.location = "Location is required.";
-    if (!description) newErrors.description = "Job description is required.";
-    if (!category) newErrors.category = "Category is required.";
-    return newErrors;
+  useEffect(() => {
+    // Automatically set Recruiter ID from localStorage
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      setRecID(userId);
+    } else {
+      setErrorMessage("Unauthorized. Please log in.");
+    }
+  }, []);
+
+  const handleAddQuestion = () => {
+    setQuestions([...questions, ""]);
   };
 
-  const handleSubmit = (e) => {
+  const handleQuestionChange = (index, value) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[index] = value;
+    setQuestions(updatedQuestions);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formErrors = validateForm();
-    setErrors(formErrors);
-    if (Object.keys(formErrors).length > 0) return;
 
-    console.log({
-      title,
-      company,
-      location,
-      description,
-      category,
-      salary,
-      requirements,
-      responsibilities,
-      benefits,
-      logo,
-    });
+    const jobData = {
+      recID,
+      jname,
+      desc,
+      pdate,
+      questions: questions.filter((q) => q.trim() !== ""), // Exclude empty questions
+    };
 
-    setSuccessMessage("Job posted successfully!");
-    resetForm();
-    setTimeout(() => setSuccessMessage(""), 3000);
-  };
+    try {
+      const token = localStorage.getItem("token"); // Fetch token for authorization
+      const response = await axios.post("/jobs/jobs", jobData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setSuccessMessage("Job added successfully!");
+      setErrorMessage("");
+      console.log("Job added:", response.data);
 
-  const resetForm = () => {
-    setTitle("");
-    setCompany("");
-    setLocation("");
-    setDescription("");
-    setCategory("");
-    setSalary("");
-    setRequirements("");
-    setResponsibilities("");
-    setBenefits("");
-    setLogo(null);
-    setErrors({});
+      // Reset form
+      setJname("");
+      setDesc("");
+      setPdate("");
+      setQuestions([""]);
+    } catch (error) {
+      console.error("Error adding job:", error);
+      setErrorMessage("Failed to add job. Please try again.");
+      setSuccessMessage("");
+    }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-900">
-      <div className="max-w-3xl w-full bg-gray-800 p-10 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Add Job Posting</h2>
-        {successMessage && <p className="text-green-500 mb-4 text-center">{successMessage}</p>}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Job Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-              placeholder="Enter job title"
-            />
-            {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Company</label>
-            <input
-              type="text"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-              placeholder="Enter company name"
-            />
-            {errors.company && <p className="text-red-500 text-sm">{errors.company}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Location</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-              placeholder="Enter job location"
-            />
-            {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Job Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-              rows="4"
-              placeholder="Enter job description"
-            />
-            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-            >
-              <option value="">Select a category</option>
-              <option value="software">Software</option>
-              <option value="marketing">Marketing</option>
-              <option value="design">Design</option>
-              <option value="sales">Sales</option>
-            </select>
-            {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Salary Range</label>
-            <input
-              type="number"
-              value={salary}
-              onChange={(e) => setSalary(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-              placeholder="Enter salary range"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Requirements</label>
-            <textarea
-              value={requirements}
-              onChange={(e) => setRequirements(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-              rows="3"
-              placeholder="Enter job requirements"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Responsibilities</label>
-            <textarea
-              value={responsibilities}
-              onChange={(e) => setResponsibilities(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-              rows="3"
-              placeholder="Enter job responsibilities"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Benefits</label>
-            <textarea
-              value={benefits}
-              onChange={(e) => setBenefits(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-              rows="3"
-              placeholder="Enter job benefits"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Company Logo</label>
-            <input
-              type="file"
-              onChange={(e) => setLogo(e.target.files[0])}
-              className="mt-1 block w-full text-white"
-            />
-          </div>
-
+    <div className="max-w-3xl mx-auto mt-10 p-8 bg-gray-800 text-white rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-6 text-center">Add Job</h2>
+      {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
+      {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium">Recruiter ID</label>
+          <input
+            type="text"
+            value={recID}
+            disabled // Make the field read-only
+            className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-gray-500 border border-gray-600 focus:outline-none cursor-not-allowed"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Job Name</label>
+          <input
+            type="text"
+            value={jname}
+            onChange={(e) => setJname(e.target.value)}
+            className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+            placeholder="Enter job name"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Description</label>
+          <textarea
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+            rows="3"
+            placeholder="Enter job description"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Posting Date</label>
+          <input
+            type="date"
+            value={pdate}
+            onChange={(e) => setPdate(e.target.value)}
+            className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Questions</label>
+          {questions.map((question, index) => (
+            <div key={index} className="flex items-center space-x-2 mb-2">
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => handleQuestionChange(index, e.target.value)}
+                className="flex-grow px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+                placeholder={`Enter question ${index + 1}`}
+              />
+            </div>
+          ))}
           <button
-            type="submit"
-            className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+            type="button"
+            onClick={handleAddQuestion}
+            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
           >
-            Submit
+            Add Question
           </button>
-        </form>
-      </div>
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
+        >
+          Submit
+        </button>
+      </form>
     </div>
   );
 }

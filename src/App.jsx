@@ -1,17 +1,18 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import JobListing from './pages/RecruiterJobPosting';
-import Profile from './pages/Profile';
-import Notifications from './pages/Notifications';
-import AddJob from './pages/AddJob';
-import ApplyJobs from './pages/ApplyJobs';
-import PrivateRoute from './components/PrivateRoute';
-import Sidebar from './components/SideBar';
-import Register from './pages/Register';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import RecruiterJobPosting from "./pages/RecruiterJobPosting";
+import Profile from "./pages/Profile";
+import Notifications from "./pages/Notifications";
+import AddJob from "./pages/AddJob";
+import ApplyJobs from "./pages/ApplyJobs";
+import PrivateRoute from "./components/PrivateRoute";
+import Sidebar from "./components/SideBar";
+import Register from "./pages/Register";
+import JobsAppliedFor from "./pages/JobsAppliedFor";
 
 function App() {
-  console.log("Stored token:", localStorage.getItem('token'));
+  console.log("Stored token:", localStorage.getItem("token"));
   return (
     <Router>
       <div className="flex min-h-screen w-full bg-gray-900">
@@ -20,7 +21,7 @@ function App() {
           <Routes>
             {/* Public Route */}
             <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Register />} />
 
             {/* Protected Routes */}
             <Route
@@ -35,7 +36,7 @@ function App() {
               path="/jobs"
               element={
                 <PrivateRoute>
-                  <JobListing />
+                  <RecruiterJobPosting />
                 </PrivateRoute>
               }
             />
@@ -68,6 +69,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ApplyJobs />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/applied-jobs"
+              element={
+                <PrivateRoute>
+                  <JobsAppliedFor />
                 </PrivateRoute>
               }
             />
