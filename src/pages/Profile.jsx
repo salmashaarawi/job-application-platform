@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import  { useEffect, useState } from 'react';
+import axios from 'axios';
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
@@ -16,6 +18,7 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -23,6 +26,7 @@ export default function Profile() {
 
         if (!token) {
           setError("User is not authenticated.");
+
           return;
         }
 
@@ -41,6 +45,7 @@ export default function Profile() {
       } catch (err) {
         console.error("Error fetching profile:", err);
         setError("Failed to load profile information.");
+
       }
     };
 
@@ -51,6 +56,7 @@ export default function Profile() {
     setEditMode(!editMode);
     setError("");
     setSuccess("");
+
   };
 
   const handleSave = async () => {
@@ -62,6 +68,7 @@ export default function Profile() {
         lastName,
         email,
       };
+
 
       // Update the profile using the API
       await axios.put(`/api/users/${token}`, updatedProfile, {
@@ -124,6 +131,7 @@ export default function Profile() {
       setError(
         "Failed to update password. Please check your current password."
       );
+
     }
   };
 
@@ -140,6 +148,7 @@ export default function Profile() {
       <h2 className="text-2xl font-bold mb-4">Profile</h2>
       {success && <p className="text-green-500 mb-4">{success}</p>}
       {error && <p className="text-red-500 mb-4">{error}</p>}
+
 
       {editMode ? (
         <div>
@@ -206,12 +215,14 @@ export default function Profile() {
             >
               Update Password
             </button>
+
           </div>
           <button
             onClick={handleSave}
             className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
           >
             Save Profile
+
           </button>
           <button
             onClick={handleEditToggle}
@@ -231,6 +242,7 @@ export default function Profile() {
           <p>
             <strong>Email:</strong> {profile.email}
           </p>
+
           <button
             onClick={handleEditToggle}
             className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
