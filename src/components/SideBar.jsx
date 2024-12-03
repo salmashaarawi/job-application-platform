@@ -16,9 +16,9 @@ export default function Sidebar() {
     <aside className="w-64 h-screen fixed bg-gray-800 text-white p-4">
       <nav className="flex flex-col space-y-4">
         {/* Links for all users */}
-        <Link to="/dashboard" className="hover:bg-gray-700 p-2 rounded">
+        {/* <Link to="/dashboard" className="hover:bg-gray-700 p-2 rounded">
           Dashboard
-        </Link>
+        </Link> */}
         <Link to="/profile" className="hover:bg-gray-700 p-2 rounded">
           Profile
         </Link>

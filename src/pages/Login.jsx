@@ -38,7 +38,7 @@ export default function Login() {
       console.log("Login successful. User details:", userDetails);
 
       // Redirect to the dashboard
-      navigate("/dashboard");
+      navigate("/profile");
     } catch (err) {
       console.error("Login error:", err);
       setError("Invalid email or password");

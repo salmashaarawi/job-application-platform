@@ -4,6 +4,8 @@ import axios from "axios";
 export default function JobsList() {
   const [jobs, setJobs] = useState([]);
   const [error, setError] = useState("");
+  const [applicationData, setApplicationData] = useState({}); // To store user's answers
+  const [showQuestions, setShowQuestions] = useState(null); // To handle applying modal
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -19,6 +21,45 @@ export default function JobsList() {
 
     fetchJobs();
   }, []);
+
+  const handleApply = async (job) => {
+    // Gather necessary data
+    const token = localStorage.getItem("token");
+    const userID = localStorage.getItem("userId");
+
+    const applicationPayload = {
+      uID: userID,
+      job: { jID: job.jID },
+      url: "http://example.com/application/123", // Replace with actual URL if dynamic
+      status: "Applied",
+      rnotes: "Looking forward to the opportunity",
+      sd: new Date().toISOString().split("T")[0], // Today's date
+      qAnswers: applicationData, // Gathered answers from the form
+    };
+
+    try {
+      const response = await axios.post(`/jobs/applications`, applicationPayload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("Application submitted successfully:", response.data);
+      alert("Application submitted successfully!");
+      setApplicationData({}); // Clear answers after successful submission
+      setShowQuestions(null); // Hide question modal
+    } catch (err) {
+      console.error("Error submitting application:", err);
+      alert("Failed to apply for the job. Please try again.");
+    }
+  };
+
+  const handleInputChange = (question, value) => {
+    setApplicationData({
+      ...applicationData,
+      [question]: value,
+    });
+  };
 
   return (
     <div className="max-w-7xl mx-auto mt-10 p-8 bg-gray-800 text-white rounded-lg shadow-lg">
@@ -41,27 +82,51 @@ export default function JobsList() {
             </div>
             <button
               className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-              onClick={() => handleApply(job.jID)}
+              onClick={() => setShowQuestions(job)}
             >
               Apply Now
             </button>
           </div>
         ))}
       </div>
+
+      {/* Modal for questions */}
+      {showQuestions && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-gray-800 p-6 rounded-lg w-1/3">
+            <h3 className="text-xl font-bold mb-4">Answer Questions</h3>
+            <form>
+              {showQuestions.questions.map((question, index) => (
+                <div key={index} className="mb-4">
+                  <label className="block text-sm font-medium">{question}</label>
+                  <input
+                    type="text"
+                    value={applicationData[question] || ""}
+                    onChange={(e) =>
+                      handleInputChange(question, e.target.value)
+                    }
+                    className="w-full px-4 py-2 mt-1 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none"
+                  />
+                </div>
+              ))}
+            </form>
+            <div className="flex justify-end space-x-4">
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                onClick={() => setShowQuestions(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+                onClick={() => handleApply(showQuestions)}
+              >
+                Submit Application
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-
-  async function handleApply(jobID) {
-    // Example implementation for applying to a job
-    try {
-      const response = await axios.post(`/applications`, {
-        jobID, // Replace with appropriate payload structure
-      });
-      console.log("Application submitted successfully:", response.data);
-      alert("Application submitted successfully!");
-    } catch (err) {
-      console.error("Error submitting application:", err);
-      alert("Failed to apply for the job. Please try again.");
-    }
-  }
 }

@@ -6,12 +6,12 @@ export default function AddJob() {
   const [jname, setJname] = useState("");
   const [desc, setDesc] = useState("");
   const [pdate, setPdate] = useState("");
-  const [questions, setQuestions] = useState([""]); // Initialize with one question
+  const [questions, setQuestions] = useState([""]); 
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleAddQuestion = () => {
-    setQuestions([...questions, ""]); // Add an empty question
+    setQuestions([...questions, ""]); 
   };
 
   const handleQuestionChange = (index, value) => {
@@ -23,7 +23,6 @@ export default function AddJob() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Construct the job data
     const jobData = {
       recID,
       jname,
@@ -33,8 +32,7 @@ export default function AddJob() {
     };
 
     try {
-      // Make the API call to the second API (jobs endpoint)
-      const response = await axios.post("/jobs", jobData);
+      const response = await axios.post("/jobs/jobs", jobData);
       setSuccessMessage("Job added successfully!");
       setErrorMessage("");
       console.log("Job added:", response.data);

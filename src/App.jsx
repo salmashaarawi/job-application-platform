@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import JobListing from './pages/RecruiterJobPosting';
+import RecruiterJobPosting from './pages/RecruiterJobPosting';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import AddJob from './pages/AddJob';
@@ -35,7 +35,7 @@ function App() {
               path="/jobs"
               element={
                 <PrivateRoute>
-                  <JobListing />
+                  <RecruiterJobPosting />
                 </PrivateRoute>
               }
             />
