@@ -4,8 +4,10 @@ import { Link } from "react-router-dom";
 
 export default function JobListing() {
   const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]); // To store applications for a specific job
   const [error, setError] = useState("");
   const [editingJob, setEditingJob] = useState(null); // For tracking the job being edited
+  const [selectedJobID, setSelectedJobID] = useState(null); // Job ID for viewing applications
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -34,6 +36,22 @@ export default function JobListing() {
 
     fetchJobs();
   }, []);
+
+  const fetchApplications = async (jobID) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`/jobs/${jobID}/applications`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setApplications(response.data);
+      setSelectedJobID(jobID); // Set the current job ID
+    } catch (err) {
+      console.error("Error fetching applications:", err);
+      setError("Failed to load applications.");
+    }
+  };
 
   const handleEdit = (job) => {
     setEditingJob(job); // Set the selected job for editing
@@ -118,6 +136,12 @@ export default function JobListing() {
                 >
                   Delete
                 </button>
+                <button
+                  onClick={() => fetchApplications(job.jID)}
+                  className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
+                >
+                  View Applications
+                </button>
               </div>
             </div>
           ))
@@ -131,7 +155,31 @@ export default function JobListing() {
         )}
       </div>
 
-      {editingJob && (
+      {selectedJobID && (
+        <div className="mt-10 bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4">
+            Applications for Job ID: {selectedJobID}
+          </h2>
+          {applications.length > 0 ? (
+            <ul className="list-disc pl-6">
+              {applications.map((app) => (
+                <li key={app.appID}>
+                  <p>
+                    <strong>Status:</strong> {app.status}
+                  </p>
+                  <p>
+                    <strong>Notes:</strong> {app.rnotes}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No applications available for this job.</p>
+          )}
+        </div>
+      )}
+
+{editingJob && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-gray-800 p-6 rounded-lg shadow-md max-w-lg w-full">
             <h2 className="text-xl font-bold mb-4">Edit Job</h2>
@@ -186,9 +234,10 @@ export default function JobListing() {
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
+
+            </div>
+            </div>
+          )}
     </div>
   );
 }

@@ -10,6 +10,8 @@ import PrivateRoute from "./components/PrivateRoute";
 import Sidebar from "./components/SideBar";
 import Register from "./pages/Register";
 import JobsAppliedFor from "./pages/JobsAppliedFor";
+import JobApplications from "./pages/JobApplications";
+
 
 function App() {
   console.log("Stored token:", localStorage.getItem("token"));
@@ -22,7 +24,6 @@ function App() {
             {/* Public Route */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-
             {/* Protected Routes */}
             <Route
               path="/dashboard"
@@ -32,6 +33,11 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route
+              path="/jobs/:jID/applications"
+              element={<JobApplications />}
+            />
+
             <Route
               path="/jobs"
               element={
