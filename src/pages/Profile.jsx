@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import  { useEffect, useState } from 'react';
-import axios from 'axios';
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
@@ -18,7 +16,6 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -26,7 +23,6 @@ export default function Profile() {
 
         if (!token) {
           setError("User is not authenticated.");
-
           return;
         }
 
@@ -38,14 +34,12 @@ export default function Profile() {
         });
 
         setProfile(response.data);
-        // Set form values with fetched profile data
         setFirstName(response.data.firstName);
         setLastName(response.data.lastName);
         setEmail(response.data.email);
       } catch (err) {
         console.error("Error fetching profile:", err);
         setError("Failed to load profile information.");
-
       }
     };
 
@@ -56,7 +50,6 @@ export default function Profile() {
     setEditMode(!editMode);
     setError("");
     setSuccess("");
-
   };
 
   const handleSave = async () => {
@@ -69,7 +62,6 @@ export default function Profile() {
         email,
       };
 
-
       // Update the profile using the API
       await axios.put(`/api/users/${token}`, updatedProfile, {
         headers: {
@@ -77,7 +69,6 @@ export default function Profile() {
         },
       });
 
-      // Update the local profile data and exit edit mode
       setProfile(updatedProfile);
       setEditMode(false);
       setSuccess("Profile updated successfully.");
@@ -89,7 +80,6 @@ export default function Profile() {
 
   const handlePasswordUpdate = async () => {
     if (!currentPassword && !newPassword && !confirmPassword) {
-      // No password change requested
       setSuccess("Profile updated successfully without changing password.");
       return;
     }
@@ -107,7 +97,6 @@ export default function Profile() {
     try {
       const token = localStorage.getItem("token");
 
-      // Update the password using the API
       await axios.post(
         `/api/users/${token}/update-password`,
         {
@@ -128,10 +117,28 @@ export default function Profile() {
       setConfirmPassword("");
     } catch (err) {
       console.error("Error updating password:", err);
-      setError(
-        "Failed to update password. Please check your current password."
-      );
+      setError("Failed to update password. Please check your current password.");
+    }
+  };
 
+  const handleDeleteProfile = async () => {
+    if (window.confirm("Are you sure you want to delete your profile? This action cannot be undone.")) {
+      try {
+        const token = localStorage.getItem("token");
+
+        await axios.delete(`/api/users/${token}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Clear localStorage and redirect to login page
+        localStorage.clear();
+        window.location.href = "/login";
+      } catch (err) {
+        console.error("Error deleting profile:", err);
+        setError("Failed to delete profile. Please try again.");
+      }
     }
   };
 
@@ -148,7 +155,6 @@ export default function Profile() {
       <h2 className="text-2xl font-bold mb-4">Profile</h2>
       {success && <p className="text-green-500 mb-4">{success}</p>}
       {error && <p className="text-red-500 mb-4">{error}</p>}
-
 
       {editMode ? (
         <div>
@@ -215,14 +221,12 @@ export default function Profile() {
             >
               Update Password
             </button>
-
           </div>
           <button
             onClick={handleSave}
             className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
           >
             Save Profile
-
           </button>
           <button
             onClick={handleEditToggle}
@@ -242,12 +246,17 @@ export default function Profile() {
           <p>
             <strong>Email:</strong> {profile.email}
           </p>
-
           <button
             onClick={handleEditToggle}
             className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
           >
             Edit Profile
+          </button>
+          <button
+            onClick={handleDeleteProfile}
+            className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+          >
+            Delete Profile
           </button>
         </div>
       )}

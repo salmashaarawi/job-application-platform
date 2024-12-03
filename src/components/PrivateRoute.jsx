@@ -3,9 +3,6 @@ import PropTypes from 'prop-types';
 import { Navigate } from 'react-router-dom';
 
 
-
-
-
 export default function PrivateRoute({ children, allowedRoles = [] }) {
   const token = localStorage.getItem('token');
   const userType = localStorage.getItem('userType'); // Fetch user type from localStorage
