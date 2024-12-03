@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function AddJob() {
@@ -6,12 +6,22 @@ export default function AddJob() {
   const [jname, setJname] = useState("");
   const [desc, setDesc] = useState("");
   const [pdate, setPdate] = useState("");
-  const [questions, setQuestions] = useState([""]); 
+  const [questions, setQuestions] = useState([""]);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  useEffect(() => {
+    // Automatically set Recruiter ID from localStorage
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      setRecID(userId);
+    } else {
+      setErrorMessage("Unauthorized. Please log in.");
+    }
+  }, []);
+
   const handleAddQuestion = () => {
-    setQuestions([...questions, ""]); 
+    setQuestions([...questions, ""]);
   };
 
   const handleQuestionChange = (index, value) => {
@@ -32,13 +42,17 @@ export default function AddJob() {
     };
 
     try {
-      const response = await axios.post("/jobs/jobs", jobData);
+      const token = localStorage.getItem("token"); // Fetch token for authorization
+      const response = await axios.post("/jobs/jobs", jobData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setSuccessMessage("Job added successfully!");
       setErrorMessage("");
       console.log("Job added:", response.data);
 
       // Reset form
-      setRecID("");
       setJname("");
       setDesc("");
       setPdate("");
@@ -61,10 +75,8 @@ export default function AddJob() {
           <input
             type="text"
             value={recID}
-            onChange={(e) => setRecID(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-            placeholder="Enter recruiter ID"
-            required
+            disabled // Make the field read-only
+            className="mt-1 block w-full px-4 py-2 rounded-md bg-gray-700 text-gray-500 border border-gray-600 focus:outline-none cursor-not-allowed"
           />
         </div>
         <div>
