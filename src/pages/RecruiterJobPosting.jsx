@@ -11,19 +11,21 @@ export default function JobListing() {
     const fetchJobs = async () => {
       try {
         const token = localStorage.getItem("token");
-        const userId = localStorage.getItem("userId"); 
+        const userId = localStorage.getItem("userId"); // Logged-in user ID
         if (!token || !userId) {
           setError("Unauthorized. Please log in.");
           return;
         }
 
-        const response = await axios.get(`/jobs/jobs?recID=${userId}`, {
+        const response = await axios.get("/jobs/jobs", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setJobs(response.data);
+        // Filter jobs by current user's recID
+        const userJobs = response.data.filter((job) => job.recID === userId);
+        setJobs(userJobs);
       } catch (err) {
         console.error("Error fetching jobs:", err);
         setError("Failed to load job postings.");
@@ -44,16 +46,15 @@ export default function JobListing() {
       const token = localStorage.getItem("token");
       const { jID, jname, desc, pdate, questions } = editingJob;
 
-      await axios.put(`/jobs/jobs/${jID}`, {
-        jname,
-        desc,
-        pdate,
-        questions,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.put(
+        `/jobs/jobs/${jID}`,
+        { jname, desc, pdate, questions },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       // Update the local state with the edited job
       setJobs((prevJobs) =>
