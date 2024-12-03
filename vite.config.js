@@ -6,10 +6,16 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://useraccountmanagement.azurewebsites.net',
+        target: 'https://useraccmgt-amc9dshhg3drawdj.canadacentral-01.azurewebsites.net',
         changeOrigin: true,
-        secure: true,               // If the server uses HTTPS, set this to true
+        secure: true,
         rewrite: (path) => path.replace(/^\/api/, ''), // Rewrite the API path
+      },
+      '/jobs': {
+        target: 'https://jobappms.azurewebsites.net/', // Replace with your second API base URL
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/jobs/, ''), // Rewrite the second API path
       },
     },
   },

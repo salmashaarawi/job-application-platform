@@ -8,29 +8,43 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("/api/login", {
+      // Login to get token
+      const loginResponse = await axios.post("/api/login", {
         email,
         password,
       });
 
-      const token = response.data;
+      const token = loginResponse.data;
+      localStorage.setItem("token", token); // Store token in localStorage
 
-      // Store the token in localStorage
-      localStorage.setItem("token", token);
+      // Fetch user details using the token
+      const userDetailsResponse = await axios.get(`/api/users/${token}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      console.log("Login successful, token received:", token);
+      const userDetails = userDetailsResponse.data;
 
-      // Redirect to the Dashboard
+      // Store user details in localStorage
+      localStorage.setItem("userType", userDetails.userType);
+      localStorage.setItem("userId", userDetails.userId);
+
+      console.log("Login successful. User details:", userDetails);
+
+      // Redirect to the dashboard
       navigate("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       setError("Invalid email or password");
     }
   };
+
 
   return (
     <div className="max-w-md mx-auto mt-10 p-8 bg-gray-800 text-white rounded-lg shadow-lg">
