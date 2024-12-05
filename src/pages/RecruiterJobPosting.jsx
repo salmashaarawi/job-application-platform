@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 
 export default function JobListing() {
   const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState([]); // To store applications for a specific job
   const [error, setError] = useState("");
-  const [editingJob, setEditingJob] = useState(null); // For tracking the job being edited
-  const [selectedJobID, setSelectedJobID] = useState(null); // Job ID for viewing applications
+  const [editingJob, setEditingJob] = useState(null);
+
+  const jobTypes = ["Full-time", "Part-time", "Internship", "Freelance"];
+  const fields = ["IT", "Marketing", "Finance", "Healthcare", "Education"];
+  const durations = ["1 month", "3 months", "6 months", "1 year", "Permanent"];
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         const token = localStorage.getItem("token");
-        const userId = localStorage.getItem("userId"); // Logged-in user ID
+        const userId = localStorage.getItem("userId");
         if (!token || !userId) {
           setError("Unauthorized. Please log in.");
           return;
@@ -25,7 +26,6 @@ export default function JobListing() {
           },
         });
 
-        // Filter jobs by current user's recID
         const userJobs = response.data.filter((job) => job.recID === userId);
         setJobs(userJobs);
       } catch (err) {
@@ -37,24 +37,8 @@ export default function JobListing() {
     fetchJobs();
   }, []);
 
-  const fetchApplications = async (jobID) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`/jobs/${jobID}/applications`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setApplications(response.data);
-      setSelectedJobID(jobID); // Set the current job ID
-    } catch (err) {
-      console.error("Error fetching applications:", err);
-      setError("Failed to load applications.");
-    }
-  };
-
   const handleEdit = (job) => {
-    setEditingJob(job); // Set the selected job for editing
+    setEditingJob(job);
   };
 
   const handleSave = async () => {
@@ -74,13 +58,12 @@ export default function JobListing() {
         }
       );
 
-      // Update the local state with the edited job
       setJobs((prevJobs) =>
         prevJobs.map((job) => (job.jID === jID ? editingJob : job))
       );
 
       alert("Job updated successfully.");
-      setEditingJob(null); // Exit edit mode
+      setEditingJob(null);
     } catch (err) {
       console.error("Error updating job:", err);
       alert("Failed to update the job.");
@@ -88,26 +71,14 @@ export default function JobListing() {
   };
 
   const handleCancelEdit = () => {
-    setEditingJob(null); // Cancel edit mode
+    setEditingJob(null);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this job posting?")) {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(`/jobs/jobs/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setJobs(jobs.filter((job) => job.jID !== id));
-        alert("Job deleted successfully.");
-      } catch (err) {
-        console.error("Error deleting job:", err);
-        alert("Failed to delete the job.");
-      }
-    }
+  const handlePromptAdd = (prompt) => {
+    setEditingJob((prevJob) => ({
+      ...prevJob,
+      desc: prevJob.desc ? `${prevJob.desc}, ${prompt}` : prompt,
+    }));
   };
 
   return (
@@ -117,69 +88,22 @@ export default function JobListing() {
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       <div className="space-y-6">
-        {jobs.length > 0 ? (
-          jobs.map((job) => (
-            <div key={job.jID} className="p-6 bg-gray-800 rounded-lg shadow-md">
-              <h3 className="text-2xl font-semibold mb-2">{job.jname}</h3>
-              <p className="text-sm text-gray-400 mb-4">{job.desc}</p>
-              <p className="text-gray-400 mb-4">Posted on: {job.pdate}</p>
-              <div className="flex space-x-4">
-                <button
-                  onClick={() => handleEdit(job)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(job.jID)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => fetchApplications(job.jID)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
-                >
-                  View Applications
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-400">
-            No job postings available.{" "}
-            <Link to="/add-job" className="text-blue-500 underline">
-              Add a new job
-            </Link>
-          </p>
-        )}
+        {jobs.map((job) => (
+          <div key={job.jID} className="p-6 bg-gray-800 rounded-lg shadow-md">
+            <h3 className="text-2xl font-semibold mb-2">{job.jname}</h3>
+            <p className="text-sm text-gray-400 mb-4">{job.desc}</p>
+            <p className="text-gray-400 mb-4">Posted on: {job.pdate}</p>
+            <button
+              onClick={() => handleEdit(job)}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+            >
+              Edit
+            </button>
+          </div>
+        ))}
       </div>
 
-      {selectedJobID && (
-        <div className="mt-10 bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">
-            Applications for Job ID: {selectedJobID}
-          </h2>
-          {applications.length > 0 ? (
-            <ul className="list-disc pl-6">
-              {applications.map((app) => (
-                <li key={app.appID}>
-                  <p>
-                    <strong>Status:</strong> {app.status}
-                  </p>
-                  <p>
-                    <strong>Notes:</strong> {app.rnotes}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No applications available for this job.</p>
-          )}
-        </div>
-      )}
-
-{editingJob && (
+      {editingJob && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-gray-800 p-6 rounded-lg shadow-md max-w-lg w-full">
             <h2 className="text-xl font-bold mb-4">Edit Job</h2>
@@ -200,26 +124,48 @@ export default function JobListing() {
               }
               className="w-full px-4 py-2 mb-4 rounded-md bg-gray-700 text-white border border-gray-600"
             ></textarea>
-            <label className="block text-sm font-medium mb-2">Posted Date</label>
-            <input
-              type="date"
-              value={editingJob.pdate}
-              onChange={(e) =>
-                setEditingJob({ ...editingJob, pdate: e.target.value })
-              }
-              className="w-full px-4 py-2 mb-4 rounded-md bg-gray-700 text-white border border-gray-600"
-            />
-            <label className="block text-sm font-medium mb-2">Questions</label>
-            <textarea
-              value={editingJob.questions.join("\n")}
-              onChange={(e) =>
-                setEditingJob({
-                  ...editingJob,
-                  questions: e.target.value.split("\n"),
-                })
-              }
-              className="w-full px-4 py-2 mb-4 rounded-md bg-gray-700 text-white border border-gray-600"
-            ></textarea>
+
+            {/* Prompts Section */}
+            <div className="mb-4">
+              <h4 className="text-sm font-bold">Add Prompts:</h4>
+              <div className="mb-2">
+                <strong>Job Types:</strong>
+                {jobTypes.map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => handlePromptAdd(type)}
+                    className="ml-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+              <div className="mb-2">
+                <strong>Fields:</strong>
+                {fields.map((field) => (
+                  <button
+                    key={field}
+                    onClick={() => handlePromptAdd(field)}
+                    className="ml-2 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md"
+                  >
+                    {field}
+                  </button>
+                ))}
+              </div>
+              <div className="mb-2">
+                <strong>Durations:</strong>
+                {durations.map((duration) => (
+                  <button
+                    key={duration}
+                    onClick={() => handlePromptAdd(duration)}
+                    className="ml-2 bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-md"
+                  >
+                    {duration}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-4">
               <button
                 onClick={handleSave}
@@ -234,10 +180,9 @@ export default function JobListing() {
                 Cancel
               </button>
             </div>
-
-            </div>
-            </div>
-          )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
