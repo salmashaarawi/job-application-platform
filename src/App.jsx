@@ -12,7 +12,6 @@ import Register from "./pages/Register";
 import JobsAppliedFor from "./pages/JobsAppliedFor";
 import JobApplications from "./pages/JobApplications";
 
-
 function App() {
   console.log("Stored token:", localStorage.getItem("token"));
   return (
@@ -33,11 +32,12 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Route for viewing applications for a specific job */}
             <Route
               path="/jobs/:jID/applications"
               element={<JobApplications />}
             />
-
             <Route
               path="/jobs"
               element={

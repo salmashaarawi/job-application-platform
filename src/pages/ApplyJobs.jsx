@@ -3,6 +3,8 @@ import axios from "axios";
 
 export default function JobsList() {
   const [jobs, setJobs] = useState([]);
+  const [filteredJobs, setFilteredJobs] = useState([]); // Jobs after filtering
+  const [filter, setFilter] = useState(""); // Filter input
   const [error, setError] = useState("");
   const [applicationData, setApplicationData] = useState({}); // To store user's answers
   const [showQuestions, setShowQuestions] = useState(null); // To handle applying modal
@@ -12,6 +14,7 @@ export default function JobsList() {
       try {
         const response = await axios.get("/jobs/jobs");
         setJobs(response.data);
+        setFilteredJobs(response.data); // Initially display all jobs
         setError("");
       } catch (err) {
         console.error("Error fetching jobs:", err);
@@ -22,19 +25,29 @@ export default function JobsList() {
     fetchJobs();
   }, []);
 
+  const handleFilterChange = (e) => {
+    const value = e.target.value.toLowerCase();
+    setFilter(value);
+
+    // Filter jobs based on the description matching the filter text
+    const filtered = jobs.filter((job) =>
+      job.desc.toLowerCase().includes(value)
+    );
+    setFilteredJobs(filtered);
+  };
+
   const handleApply = async (job) => {
-    // Gather necessary data
     const token = localStorage.getItem("token");
     const userID = localStorage.getItem("userId");
 
     const applicationPayload = {
       uID: userID,
       job: { jID: job.jID },
-      url: "http://example.com/application/123", // Replace with actual URL if dynamic
+      url: "http://example.com/application/123",
       status: "Applied",
       rnotes: "Looking forward to the opportunity",
-      sd: new Date().toISOString().split("T")[0], // Today's date
-      qAnswers: applicationData, // Gathered answers from the form
+      sd: new Date().toISOString().split("T")[0],
+      qAnswers: applicationData,
     };
 
     try {
@@ -46,8 +59,8 @@ export default function JobsList() {
 
       console.log("Application submitted successfully:", response.data);
       alert("Application submitted successfully!");
-      setApplicationData({}); // Clear answers after successful submission
-      setShowQuestions(null); // Hide question modal
+      setApplicationData({});
+      setShowQuestions(null);
     } catch (err) {
       console.error("Error submitting application:", err);
       alert("Failed to apply for the job. Please try again.");
@@ -66,8 +79,19 @@ export default function JobsList() {
       <h2 className="text-2xl font-bold mb-6 text-center">Available Jobs</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
+      {/* Filter Section */}
+      <div className="mb-6">
+        <input
+          type="text"
+          value={filter}
+          onChange={handleFilterChange}
+          placeholder="Filter by job type or field (e.g., 'full-time', 'developer')"
+          className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none"
+        />
+      </div>
+
       <div className="space-y-6">
-        {jobs.map((job) => (
+        {filteredJobs.map((job) => (
           <div key={job.jID} className="p-6 bg-gray-700 rounded-md shadow-md">
             <h3 className="text-xl font-bold">{job.jname}</h3>
             <p className="text-sm text-gray-400">Posted on: {job.pdate}</p>
