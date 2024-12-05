@@ -51,11 +51,15 @@ export default function JobsList() {
     };
 
     try {
-      const response = await axios.post(`/jobs/applications`, applicationPayload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        `/jobs/applications`,
+        applicationPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       console.log("Application submitted successfully:", response.data);
       alert("Application submitted successfully!");
@@ -122,7 +126,9 @@ export default function JobsList() {
             <form>
               {showQuestions.questions.map((question, index) => (
                 <div key={index} className="mb-4">
-                  <label className="block text-sm font-medium">{question}</label>
+                  <label className="block text-sm font-medium">
+                    {question}
+                  </label>
                   <input
                     type="text"
                     value={applicationData[question] || ""}

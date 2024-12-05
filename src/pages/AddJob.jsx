@@ -10,6 +10,11 @@ export default function AddJob() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Predefined prompts
+  const jobTypes = ["Full-time", "Part-time", "Internship", "Freelance"];
+  const fields = ["IT", "Marketing", "Finance", "Healthcare", "Education"];
+  const durations = ["1 month", "3 months", "6 months", "1 year", "Permanent"];
+
   useEffect(() => {
     // Automatically set Recruiter ID from localStorage
     const userId = localStorage.getItem("userId");
@@ -28,6 +33,10 @@ export default function AddJob() {
     const updatedQuestions = [...questions];
     updatedQuestions[index] = value;
     setQuestions(updatedQuestions);
+  };
+
+  const handleAddPrompt = (prompt) => {
+    setDesc((prevDesc) => (prevDesc ? `${prevDesc}, ${prompt}` : prompt));
   };
 
   const handleSubmit = async (e) => {
@@ -100,6 +109,46 @@ export default function AddJob() {
             placeholder="Enter job description"
             required
           />
+          {/* Prompts Section */}
+          <div className="mt-4">
+            <h4 className="text-sm font-bold">Add Prompts:</h4>
+            <div className="mb-2">
+              <strong>Job Types:</strong>
+              {jobTypes.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleAddPrompt(type)}
+                  className="ml-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+            <div className="mb-2">
+              <strong>Fields:</strong>
+              {fields.map((field) => (
+                <button
+                  key={field}
+                  onClick={() => handleAddPrompt(field)}
+                  className="ml-2 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md"
+                >
+                  {field}
+                </button>
+              ))}
+            </div>
+            <div className="mb-2">
+              <strong>Durations:</strong>
+              {durations.map((duration) => (
+                <button
+                  key={duration}
+                  onClick={() => handleAddPrompt(duration)}
+                  className="ml-2 bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-md"
+                >
+                  {duration}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium">Posting Date</label>
