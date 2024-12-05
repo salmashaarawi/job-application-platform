@@ -7,7 +7,7 @@ export default function Register() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('applicant'); // Default to applicant
+  const [userType, setUserType] = useState('Candidate'); // Default to applicant
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -89,8 +89,6 @@ export default function Register() {
           >
             <option value="Candidate">Candidate</option>
             <option value="Recruiter">Recruiter</option>
-            <option value="Admin">Admin</option>
-
           </select>
         </div>
         <button

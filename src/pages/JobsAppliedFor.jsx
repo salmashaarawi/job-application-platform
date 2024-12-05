@@ -16,16 +16,48 @@ export default function ApplicationsList() {
           return;
         }
 
-        const response = await axios.get(`/applications?uID=${userId}`, {
+        // Fetch all jobs
+        const jobsResponse = await axios.get(`/jobs/jobs`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setApplications(response.data);
+        // Filter jobs that have applications for the current user
+        const jobsWithApplications = await Promise.all(
+          jobsResponse.data.map(async (job) => {
+            try {
+              const applicationsResponse = await axios.get(
+                `/jobs/jobs/${job.jID}/applications`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+
+              // Find applications matching the current user's ID
+              const userApplications = applicationsResponse.data.filter(
+                (app) => app.uID === userId
+              );
+
+              return userApplications.map((app) => ({
+                ...app,
+                job, // Add job details to the application
+              }));
+            } catch (err) {
+              console.error(`Error fetching applications for job: ${job.jID}`, err);
+              return [];
+            }
+          })
+        );
+
+        // Flatten the array of applications
+        const allUserApplications = jobsWithApplications.flat();
+        setApplications(allUserApplications);
         setError("");
       } catch (err) {
-        console.error("Error fetching applications:", err);
+        console.error("Error fetching jobs or applications:", err);
         setError("Failed to load applications. Please try again.");
       }
     };
@@ -37,13 +69,13 @@ export default function ApplicationsList() {
     if (window.confirm("Are you sure you want to delete this application?")) {
       try {
         const token = localStorage.getItem("token");
-
-        await axios.delete(`/applications/${appID}`, {
+  
+        await axios.delete(`/jobs/applications/${appID}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
+  
         setApplications(applications.filter((app) => app.appID !== appID));
         alert("Application deleted successfully.");
       } catch (err) {
@@ -52,7 +84,7 @@ export default function ApplicationsList() {
       }
     }
   };
-
+  
   return (
     <div className="max-w-5xl mx-auto p-8 bg-gray-900 text-white rounded-lg shadow-md mt-10">
       <h2 className="text-3xl font-bold text-center mb-6">Your Applications</h2>
