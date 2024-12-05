@@ -130,6 +130,39 @@ export default function JobListing() {
     }
   };
 
+  const handleStatusChange = async (appID, newStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+  
+      // Log the appID to ensure it is valid
+      console.log("Updating status for appID:", appID);
+  
+      // Update the status using the correct URL format
+      await axios.put(
+        `/jobs/applications/${appID}`, // Adjusted to match the correct URL format
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      // Update local application state
+      setApplications((prevApplications) =>
+        prevApplications.map((app) =>
+          app.appID === appID ? { ...app, status: newStatus } : app
+        )
+      );
+  
+      alert("Status updated successfully.");
+    } catch (err) {
+      console.error("Error updating status:", err);
+      alert("Failed to update the status.");
+    }
+  };
+  
+
   return (
     <div className="max-w-5xl mx-auto p-8 bg-gray-900 text-white rounded-lg shadow-md mt-10">
       <h2 className="text-3xl font-bold text-center mb-6">Your Job Postings</h2>
@@ -184,8 +217,25 @@ export default function JobListing() {
             <ul className="list-disc pl-6">
               {applications.map((app) => (
                 <li key={app.appID}>
+                  {/* <p>
+                    <strong>Name:</strong> {app.userName}
+                  </p> */}
                   <p>
-                    <strong>Status:</strong> {app.status}
+                    <strong>Status:</strong>
+                    <select
+                      value={app.status}
+                      onChange={(e) =>
+                        handleStatusChange(app.appID, e.target.value)
+                      }
+                      className="ml-2 bg-gray-700 text-white px-2 py-1 rounded-md"
+                    >
+                      <option value="Applied">Applied</option>
+                      <option value="Interview Pending">
+                        Interview Pending
+                      </option>
+                      <option value="Accepted">Accepted</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
                   </p>
                   <p>
                     <strong>Notes:</strong> {app.rnotes}
