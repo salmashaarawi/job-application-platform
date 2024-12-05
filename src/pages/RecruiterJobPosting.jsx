@@ -40,12 +40,32 @@ export default function JobListing() {
   const fetchApplications = async (jobID) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`/jobs/${jobID}/applications`, {
+      const response = await axios.get(`/jobs/jobs/${jobID}/applications`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setApplications(response.data);
+
+      const applicationsWithUserDetails = await Promise.all(
+        response.data.map(async (app) => {
+          try {
+            const userResponse = await axios.get(`/users/${app.uID}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            return { ...app, userName: userResponse.data.name };
+          } catch (err) {
+            console.error(
+              `Error fetching user details for uID: ${app.uID}`,
+              err
+            );
+            return { ...app, userName: "Unknown User" };
+          }
+        })
+      );
+
+      setApplications(applicationsWithUserDetails);
       setSelectedJobID(jobID); // Set the current job ID
     } catch (err) {
       console.error("Error fetching applications:", err);
@@ -170,6 +190,16 @@ export default function JobListing() {
                   <p>
                     <strong>Notes:</strong> {app.rnotes}
                   </p>
+                  <p>
+                    <strong>Answers:</strong>
+                  </p>
+                  <ul className="pl-4">
+                    {Object.entries(app.qAnswers).map(([question, answer]) => (
+                      <li key={question}>
+                        <strong>{question}:</strong> {answer}
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ))}
             </ul>
@@ -179,6 +209,7 @@ export default function JobListing() {
         </div>
       )}
 
+      {/* Editing Job Modal */}
       {editingJob && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-gray-800 p-6 rounded-lg shadow-md max-w-lg w-full">

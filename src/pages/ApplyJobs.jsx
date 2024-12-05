@@ -6,7 +6,10 @@ export default function JobsList() {
   const [filteredJobs, setFilteredJobs] = useState([]); // Jobs after filtering
   const [filter, setFilter] = useState(""); // Filter input
   const [error, setError] = useState("");
-  const [applicationData, setApplicationData] = useState({}); // To store user's answers
+  const [applicationData, setApplicationData] = useState({
+    url: "", // For CV link
+    rnotes: "", // For recruiter notes
+  });
   const [showQuestions, setShowQuestions] = useState(null); // To handle applying modal
 
   useEffect(() => {
@@ -43,9 +46,9 @@ export default function JobsList() {
     const applicationPayload = {
       uID: userID,
       job: { jID: job.jID },
-      url: "http://example.com/application/123",
+      url: applicationData.url, // CV link
       status: "Applied",
-      rnotes: "Looking forward to the opportunity",
+      rnotes: applicationData.rnotes, // Recruiter notes
       sd: new Date().toISOString().split("T")[0],
       qAnswers: applicationData,
     };
@@ -63,7 +66,7 @@ export default function JobsList() {
 
       console.log("Application submitted successfully:", response.data);
       alert("Application submitted successfully!");
-      setApplicationData({});
+      setApplicationData({ url: "", rnotes: "" }); // Reset the additional fields
       setShowQuestions(null);
     } catch (err) {
       console.error("Error submitting application:", err);
@@ -71,11 +74,11 @@ export default function JobsList() {
     }
   };
 
-  const handleInputChange = (question, value) => {
-    setApplicationData({
-      ...applicationData,
-      [question]: value,
-    });
+  const handleInputChange = (field, value) => {
+    setApplicationData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
   };
 
   return (
@@ -124,6 +127,7 @@ export default function JobsList() {
           <div className="bg-gray-800 p-6 rounded-lg w-1/3">
             <h3 className="text-xl font-bold mb-4">Answer Questions</h3>
             <form>
+              {/* Map Questions */}
               {showQuestions.questions.map((question, index) => (
                 <div key={index} className="mb-4">
                   <label className="block text-sm font-medium">
@@ -139,6 +143,27 @@ export default function JobsList() {
                   />
                 </div>
               ))}
+              {/* Additional Fields */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium">CV Link</label>
+                <input
+                  type="url"
+                  value={applicationData.url}
+                  onChange={(e) => handleInputChange("url", e.target.value)}
+                  placeholder="Enter a link to your CV"
+                  className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium">Notes</label>
+                <textarea
+                  value={applicationData.rnotes}
+                  onChange={(e) => handleInputChange("rnotes", e.target.value)}
+                  placeholder="Enter notes for the recruiter"
+                  className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none"
+                  rows="3"
+                />
+              </div>
             </form>
             <div className="flex justify-end space-x-4">
               <button
