@@ -46,7 +46,10 @@ export default function ApplicationsList() {
                 job, // Add job details to the application
               }));
             } catch (err) {
-              console.error(`Error fetching applications for job: ${job.jID}`, err);
+              console.error(
+                `Error fetching applications for job: ${job.jID}`,
+                err
+              );
               return [];
             }
           })
@@ -69,13 +72,13 @@ export default function ApplicationsList() {
     if (window.confirm("Are you sure you want to delete this application?")) {
       try {
         const token = localStorage.getItem("token");
-  
+
         await axios.delete(`/jobs/applications/${appID}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-  
+
         setApplications(applications.filter((app) => app.appID !== appID));
         alert("Application deleted successfully.");
       } catch (err) {
@@ -84,7 +87,7 @@ export default function ApplicationsList() {
       }
     }
   };
-  
+
   return (
     <div className="max-w-5xl mx-auto p-8 bg-gray-900 text-white rounded-lg shadow-md mt-10">
       <h2 className="text-3xl font-bold text-center mb-6">Your Applications</h2>
@@ -94,7 +97,16 @@ export default function ApplicationsList() {
       {applications.length > 0 ? (
         <div className="space-y-6">
           {applications.map((app) => (
-            <div key={app.appID} className="p-6 bg-gray-800 rounded-lg shadow-md">
+            <div
+              key={app.appID}
+              className={`p-6 rounded-lg shadow-md ${
+                app.status === "Accepted"
+                  ? "bg-green-700"
+                  : app.status === "Rejected"
+                  ? "bg-red-700"
+                  : "bg-gray-800"
+              }`}
+            >
               <h3 className="text-2xl font-semibold mb-2">{app.job.jname}</h3>
               <p className="text-sm text-gray-400 mb-4">{app.job.desc}</p>
               <p className="text-gray-400 mb-2">
@@ -123,7 +135,9 @@ export default function ApplicationsList() {
           ))}
         </div>
       ) : (
-        <p className="text-center text-gray-400">You have not applied for any jobs yet.</p>
+        <p className="text-center text-gray-400">
+          You have not applied for any jobs yet.
+        </p>
       )}
     </div>
   );
